@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+  CVT
+  DCT
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  ELECTRIC
+  HYBRID
+}
+
+// The Main Car Model
+model Car {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Info
+  make    String // "Genesis"
+  model   String // "G90"
+  year    Int
+  price   Int
+  mileage Int
+  vin     String @unique
+  slug    String @unique // URL ID: "genesis-g90-2023"
+
+  // Specs
+  transmission Transmission @default(AUTOMATIC)
+  fuelType     FuelType     @default(GASOLINE)
+  engine       String?
+  colorExt     String?
+  colorInt     String?
+
+  // Status
+  isFeatured Boolean @default(false)
+  isSold     Boolean @default(false)
+
+  // Relations (A car has many images and features)
+  images   Image[]
+  features Feature[]
+}
+
+// Images Table
+model Image {
+  id     String  @id @default(uuid())
+  url    String
+  isMain Boolean @default(false)
+
+  carId String
+  car   Car    @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+// Features Table
+model Feature {
+  id   String @id @default(uuid())
+  name String // e.g., "Heated Seats", "Sunroof"
+
+  carId String
+  car   Car    @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
